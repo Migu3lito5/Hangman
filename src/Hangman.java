@@ -9,26 +9,28 @@
  */
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.*;
 
 public class Hangman {
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws IOException {
 
         Scanner scanner = new Scanner(System.in);
         String temp = "";
         int found = 0;
-        int lives = 4;
+        int lives = 5;
         int tips = 3;
         String[] userWord;
         List<String> showWord = new ArrayList<String>();
         List<String> realWord = new ArrayList<String>();
         System.out.println("-------- Welcome to Hangman --------\n");
 
-        userWord = goodWord().split(" ");
+        //userWord = goodWord().split(" ");
+        userWord = rndWord("list_of_words.txt").split(" ");
 
 
 
@@ -37,21 +39,21 @@ public class Hangman {
             array list.
          */
 
-        for(int i = 0; i < userWord.length; i++){
-            if(i > 0){
+        for (int i = 0; i < userWord.length; i++) {
+            if (i > 0) {
                 showWord.add("#");
                 realWord.add("#");
             }
-            for(int j = 0; j < userWord[i].length(); j++){
+            for (int j = 0; j < userWord[i].length(); j++) {
                 showWord.add("_");
-                temp = userWord[i].substring(j,j+1);
+                temp = userWord[i].substring(j, j + 1);
                 realWord.add(temp);
             }
         }
 
 
         // while loop keeps running until user runs out of lives
-        while(lives != 0){
+        while (lives != 0) {
 
             //this just displays the most recent version of the word that is shown to the user
             displayShowWord(showWord);
@@ -62,51 +64,51 @@ public class Hangman {
             temp = scanner.nextLine();
 
             // the if() statement handles all the things that include of guessing the word
-            if(temp.equals("1")){
+            if (temp.equals("1")) {
                 temp = "";
                 System.out.print("Enter a letter for a guess ");
                 temp = scanner.nextLine();
                 temp = temp.toLowerCase();
 
-                for(int i = 0; i < realWord.size(); i++){
-                    if(realWord.get(i).equals(temp)){
-                        showWord.set(i,temp);
+                for (int i = 0; i < realWord.size(); i++) {
+                    if (realWord.get(i).equals(temp)) {
+                        showWord.set(i, temp);
                         found++;
                     }
                 }
 
-                if(found < 1){
+                if (found < 1) {
                     System.out.println("The letter " + temp + " is NOT in the phrase! ");
                     lives--;
                 }
-            // this handles the hint system that is supposed to be implemented
-            } else if(temp.equals("2")){
+                // this handles the hint system that is supposed to be implemented
+            } else if (temp.equals("2")) {
                 temp = "";
-               for(int i = 0; i < showWord.size(); i++) {
-                   if(showWord.get(i).equals("_")){
-                       temp = realWord.get(i);
-                       break;
-                   }
-               }
+                for (int i = 0; i < showWord.size(); i++) {
+                    if (showWord.get(i).equals("_")) {
+                        temp = realWord.get(i);
+                        break;
+                    }
+                }
 
-               for(int i = 0; i < showWord.size(); i++){
-                   if(realWord.get(i).equals(temp)){
-                       showWord.set(i,temp);
-                   }
-               }
+                for (int i = 0; i < showWord.size(); i++) {
+                    if (realWord.get(i).equals(temp)) {
+                        showWord.set(i, temp);
+                    }
+                }
 
                 tips--;
-               lives--;
+                lives--;
 
-               System.out.println("OK, the hint is: " + temp + " Since you used a hint you only have " + lives + " guesses");
+                System.out.println("OK, the hint is: " + temp + " Since you used a hint you only have " + lives + " guesses");
 
-            // this else just handles any input that isn't a 1 or 2
-            } else{
+                // this else just handles any input that isn't a 1 or 2
+            } else {
                 System.out.println("Not valid input. Please try again ");
             }
             // if the word that displays on the console equals the real word it stops the while loop
             // and outputs a winning message
-            if(realWord.equals(showWord)){
+            if (realWord.equals(showWord)) {
                 System.out.print("\nCongratulations you won. The word was ");
                 displayRealWord(realWord);
                 lives = 0;
@@ -116,7 +118,7 @@ public class Hangman {
         }
 
         // this only runs if user never guessed the word while inside the while loop
-        if(!realWord.equals(showWord)){
+        if (!realWord.equals(showWord)) {
             System.out.print("You failed, the word was ");
             displayRealWord(realWord);
         }
@@ -128,18 +130,18 @@ public class Hangman {
         If the word isn't greater than 3 it will ask the user to resubmit another word.
      */
 
-    public static String goodWord(){
+    public static String goodWord() {
         boolean endLoop = false;
         String word = "";
         Scanner scanner = new Scanner(System.in);
 
-        while(!endLoop){
+        while (!endLoop) {
             System.out.println("Enter a word: ");
 
             word = scanner.nextLine();
             word = word.toLowerCase();
 
-            if(word.length() >= 3){
+            if (word.length() >= 3) {
                 endLoop = true;
             } else {
                 System.out.println("Word is too short, please make it atleast 4 characters long ");
@@ -152,20 +154,48 @@ public class Hangman {
     }
 
     //displays the unknown word to the player
-    public static void displayShowWord(List<String> str){
+    public static void displayShowWord(List<String> str) {
 
         System.out.print("\nSo far the word is: ");
         for (String s : str) {
             System.out.print(s);
         }
     }
-// displays the word given by the user
-    public static void displayRealWord(List<String> str){
+
+    // displays the word given by the user
+    public static void displayRealWord(List<String> str) {
 
         for (String s : str) {
             System.out.print(s);
         }
     }
 
+
+    public static String rndWord(String filename) throws IOException {
+        boolean endLoop = false;
+        String rndWord = "";
+        Random rnd = new Random();
+        int num;
+
+        File file = new File(filename);
+        final RandomAccessFile f = new RandomAccessFile(file, "r");
+
+        while(!endLoop){
+            num = (int) (Math.random() * f.length());
+            f.seek(num);
+            f.readLine();
+            rndWord = f.readLine();
+
+            if (rndWord.length() >= 3) {
+                endLoop = true;
+            }
+
+        }
+        rndWord = rndWord.toLowerCase();
+        f.close();
+        return rndWord;
+    }
 }
+
+
 
